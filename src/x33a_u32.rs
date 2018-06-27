@@ -27,21 +27,50 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 use std::hash::Hasher;
-pub struct Djbx33x {
-    hash: u64,
+use super::HasherU32;
+
+///
+/// Implements 32 bit version of one of the original hash functions post by Daniel J. Bernstein.
+///
+pub struct X33aU32 {
+    hash: u32,
 }
-impl Djbx33x {
+
+impl X33aU32 {
+    ///
+    /// Creates a new hash using the original 5381 prime number salt value used by DJB.
+    ///
     pub fn new() -> Self {
-        Djbx33x { hash: 5381 }
+        X33aU32 { hash: 5381 }
+    }
+    ///
+    /// Creates a new hash using user supplied salt value.
+    ///
+    /// The supplied salt needs to be a prime number. It should have bits in
+    /// more than just the lower 8 bits but setting any bits past half the size
+    /// of the hash is of limited use as they are quickly lost during the
+    /// multiplication stage for long values and tend to because static for very
+    /// short values. Primes between 16 to 32 bits for 64 bit hashes seem to
+    /// work best in most cases and between 16 to 24 bits for 32 bit hashes.
+    ///
+    pub fn new_with_salt(s: u32) -> Self {
+        X33aU32 { hash: s }
     }
 }
-impl Hasher for Djbx33x {
-    fn finish(&self) -> u64 {
+
+impl HasherU32 for X33aU32 {
+    fn finish_u32(&self) -> u32 {
         self.hash
+    }
+}
+
+impl Hasher for X33aU32 {
+    fn finish(&self) -> u64 {
+        self.hash as u64
     }
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
-            self.hash = (self.hash << 5).wrapping_add(self.hash) ^ *byte as u64;
+            self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u32);
         }
     }
 }
@@ -49,15 +78,16 @@ impl Hasher for Djbx33x {
 mod tests {
     use std::hash::Hasher;
     use super::*;
+
     #[test]
     fn it_does_hash_correctly() {
-        let mut sut = Djbx33x::new();
+        let mut sut = X33aU32::new();
         let input = [69, 122];
         sut.write(&input);
-        assert_eq!(sut.finish(), 5861786u64);
-        let mut sut = Djbx33x::new();
+        assert_eq!(sut.finish(), 5862308u64);
+        let mut sut = X33aU32::new();
         let input = [70, 89];
         sut.write(&input);
-        assert_eq!(sut.finish(), 5861914u64);
+        assert_eq!(sut.finish(), 5862308u64);
     }
 }

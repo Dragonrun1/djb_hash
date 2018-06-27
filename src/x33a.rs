@@ -27,17 +27,39 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 use std::hash::Hasher;
-pub struct Djbx33aPhp {
+
+///
+/// Implements 64 bit version of one of the original hash functions post by Daniel J. Bernstein.
+///
+pub struct X33a {
     hash: u64,
 }
-impl Djbx33aPhp {
+
+impl X33a {
+    ///
+    /// Creates a new hash using the original 5381 prime number salt value used by DJB.
+    ///
     pub fn new() -> Self {
-        Djbx33aPhp { hash: 5381 }
+        X33a { hash: 5381 }
+    }
+    ///
+    /// Creates a new hash using user supplied salt value.
+    ///
+    /// The supplied salt needs to be a prime number. It should have bits in
+    /// more than just the lower 8 bits but setting any bits past half the size
+    /// of the hash is of limited use as they are quickly lost during the
+    /// multiplication stage for long values and tend to because static for very
+    /// short values. Primes between 16 to 32 bits for 64 bit hashes seem to
+    /// work best in most cases and between 16 to 24 bits for 32 bit hashes.
+    ///
+    pub fn new_with_salt(s: u64) -> Self {
+        X33a { hash: s }
     }
 }
-impl Hasher for Djbx33aPhp {
+
+impl Hasher for X33a {
     fn finish(&self) -> u64 {
-        self.hash | 0x8000000000000000u64
+        self.hash
     }
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
@@ -45,19 +67,21 @@ impl Hasher for Djbx33aPhp {
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use std::hash::Hasher;
     use super::*;
+
     #[test]
     fn it_does_hash_correctly() {
-        let mut sut = Djbx33aPhp::new();
+        let mut sut = X33a::new();
         let input = [69, 122];
         sut.write(&input);
-        assert_eq!(sut.finish(), 9223372036860638116u64);
-        let mut sut = Djbx33aPhp::new();
+        assert_eq!(sut.finish(), 5862308u64);
+        let mut sut = X33a::new();
         let input = [70, 89];
         sut.write(&input);
-        assert_eq!(sut.finish(), 9223372036860638116u64);
+        assert_eq!(sut.finish(), 5862308u64);
     }
 }

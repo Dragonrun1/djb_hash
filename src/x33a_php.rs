@@ -27,21 +27,40 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 use std::hash::Hasher;
-pub struct Djbx33aU32Php {
-    hash: u32,
+
+pub struct X33aPhp {
+    hash: u64,
 }
-impl Djbx33aU32Php {
+
+impl X33aPhp {
+    ///
+    /// Creates a new hash using the original 5381 prime number salt value used by DJB.
+    ///
     pub fn new() -> Self {
-        Djbx33aU32Php { hash: 5381 }
+        X33aPhp { hash: 5381 }
+    }
+    ///
+    /// Creates a new hash using user supplied salt value.
+    ///
+    /// The supplied salt needs to be a prime number. It should have bits in
+    /// more than just the lower 8 bits but setting any bits past half the size
+    /// of the hash is of limited use as they are quickly lost during the
+    /// multiplication stage for long values and tend to because static for very
+    /// short values. Primes between 16 to 32 bits for 64 bit hashes seem to
+    /// work best in most cases and between 16 to 24 bits for 32 bit hashes.
+    ///
+    pub fn new_with_salt(s: u64) -> Self {
+        X33aPhp { hash: s }
     }
 }
-impl Hasher for Djbx33aU32Php {
+
+impl Hasher for X33aPhp {
     fn finish(&self) -> u64 {
-        (self.hash | 0x80000000u32) as u64
+        self.hash | 0x8000000000000000u64
     }
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
-            self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u32);
+            self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u64);
         }
     }
 }
@@ -49,15 +68,16 @@ impl Hasher for Djbx33aU32Php {
 mod tests {
     use std::hash::Hasher;
     use super::*;
+
     #[test]
     fn it_does_hash_correctly() {
-        let mut sut = Djbx33aU32Php::new();
+        let mut sut = X33aPhp::new();
         let input = [69, 122];
         sut.write(&input);
-        assert_eq!(sut.finish(), 2153345956u64);
-        let mut sut = Djbx33aU32Php::new();
+        assert_eq!(sut.finish(), 9223372036860638116u64);
+        let mut sut = X33aPhp::new();
         let input = [70, 89];
         sut.write(&input);
-        assert_eq!(sut.finish(), 2153345956u64);
+        assert_eq!(sut.finish(), 9223372036860638116u64);
     }
 }
