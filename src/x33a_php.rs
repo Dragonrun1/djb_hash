@@ -28,6 +28,24 @@
 //
 use std::hash::Hasher;
 
+///
+/// Implements 64 bit version of one of the original hash functions post by Daniel J. Bernstein but
+/// with final OR to set the high bit.
+///
+/// PHP uses a zero hash value to signal an empty hash that will need to be calculated. To insure no
+/// actual hash ends up being zero a final step of binary OR is used to always set the high bit.
+///
+/// # Examples
+///
+/// ```rust
+/// use std::hash::Hasher;
+/// use djb_hash::x33a_php::*;
+/// let input = "Ez";
+/// let mut hasher = X33aPhp::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 9223372036860638116u64);
+/// ```
+///
 pub struct X33aPhp {
     hash: u64,
 }
@@ -55,9 +73,18 @@ impl X33aPhp {
 }
 
 impl Hasher for X33aPhp {
+    ///
+    /// Returns the finished hash with the high bit set.
+    ///
     fn finish(&self) -> u64 {
         self.hash | 0x8000000000000000u64
     }
+    ///
+    /// Writes byte slice to hash.
+    ///
+    /// Does hash * 33 + byte but is implemented as hash << 5 (*32) + hash + byte as this is faster
+    /// on most processors vs normal multiplication.
+    ///
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u64);

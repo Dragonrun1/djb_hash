@@ -30,7 +30,35 @@ use std::hash::Hasher;
 use super::HasherU32;
 
 ///
-/// Implements 64 bit version of one of the "improved" hash functions post by Daniel J. Bernstein.
+/// Implements 32 bit version of one of the "improved" hash functions post by Daniel J. Bernstein.
+///
+/// # Examples
+///
+/// ```rust
+/// use std::hash::Hasher;
+/// use djb_hash::HasherU32;
+/// use djb_hash::x33x_u32::*;
+/// let input = "Ez";
+/// let mut hasher = X33xU32::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5861786u64);
+/// ```
+///
+/// Another example:
+///
+/// ```rust
+/// # use std::hash::Hasher;
+/// # use djb_hash::HasherU32;
+/// # use djb_hash::x33x_u32::*;
+/// let input = "FY";
+/// let mut hasher = X33xU32::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5861914u64);
+/// assert_eq!(hasher.finish_u32(), 5861914u32);
+/// ```
+///
+/// These examples show how the hashes don't collide the same as the x33a function would have
+/// given the same values.
 ///
 pub struct X33xU32 {
     hash: u32,
@@ -68,12 +96,19 @@ impl Hasher for X33xU32 {
     fn finish(&self) -> u64 {
         self.hash as u64
     }
+    ///
+    /// Writes byte slice to hash.
+    ///
+    /// Does (hash * 33) XOR byte but is implemented as (hash << 5 (times 32) + hash) XOR byte as
+    /// this is faster on most processors vs normal multiplication.
+    ///
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash = (self.hash << 5).wrapping_add(self.hash) ^ *byte as u32;
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use std::hash::Hasher;
@@ -88,6 +123,15 @@ mod tests {
         let mut sut = X33xU32::new();
         let input = [70, 89];
         sut.write(&input);
+        assert_eq!(sut.finish(), 5861914u64);
+        let input = "Ez";
+        let mut sut = X33xU32::new();
+        sut.write(&input.as_bytes());
+        assert_eq!(sut.finish(), 5861786u64);
+        assert_eq!(sut.finish_u32(), 5861786u32);
+        let input = "FY";
+        let mut sut = X33xU32::new();
+        sut.write(&input.as_bytes());
         assert_eq!(sut.finish(), 5861914u64);
     }
 }

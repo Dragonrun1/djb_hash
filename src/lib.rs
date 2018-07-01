@@ -55,17 +55,17 @@
 //! Next there is the "a" part. The "a" stand for "add". After multiplying the
 //! running hash total as given above the next byte to be hashed is added to it
 //! to form the new hash total. Some hashes instead of adding use XOR
-//! (Exclusive OR) and would have an "x" where the "a" is in example I've been
-//! using. Using XOR usually does a better job of distributing the effect of the
-//! new byte across more of the hash bits but the effect is less noticeable when
-//! using single byte on a longer hash like is done here.
+//! (Exclusive OR) and would have an "x" where the "a" is in the example I've
+//! been using. Using XOR usually does a better job of distributing the effect
+//! of the new byte across more of the hash bits but the effect is less
+//! noticeable when using single byte on a longer hash like is done here.
 //!
 //! Finally there are the one or more "Xxx" suffixes. The suffix "U32" means
 //! that internally a 32 bit unsigned integer hash total is used instead of the
 //! normal 64 bit one. Often even on 64 bit platforms 32 bit operations can be
 //! faster and may be better fit for an application. Rust by default always
 //! returns 64 bit hashes from its finish() function but since often only a
-//! 32 bit hash is needed I have added 32 bit version s as well. To return a 64
+//! 32 bit hash is needed I have added 32 bit versions as well. To return a 64
 //! bit hash the internal 32 bit one will be zero extended to 64 bits in
 //! finish(). To save from converting to 64 bits then back to 32 bits when only
 //! 32 bits are needed the finish_u32() function can be used instead of the
@@ -74,7 +74,7 @@
 //! The last "Xxx" part of the suffix denotes some additional operation or
 //! other specialization like is done in some application. A good example of
 //! this is in PHP where the high bit is always set because they use a zero hash
-//! value to detect an unset hash.
+//! value to detect an unset hash internally.
 //!
 use std::hash::Hasher;
 
@@ -94,7 +94,7 @@ pub trait HasherU32: Hasher {
     ///
     /// Rust has settled on using 64 bit hashes by default but in many cases for
     /// smaller HashMaps 32 bit hashes are enough. For those cases this function
-    /// saves convert to, then back from 64 bit, where the internal hash uses 32
+    /// saves convert to, and then back from 64 bit, where the internal hash uses 32
     /// bits and only 32 bits hash are needed.
     ///
     fn finish_u32(&self) -> u32;

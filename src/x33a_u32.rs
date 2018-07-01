@@ -59,6 +59,18 @@ impl X33aU32 {
 }
 
 impl HasherU32 for X33aU32 {
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::hash::Hasher;
+    /// # use djb_hash::x33a::*;
+    /// let input = "FY";
+    /// let mut hasher = X33a::new();
+    /// hasher.write(&input.as_bytes());
+    /// assert_eq!(hasher.finish(), 5862308u64);
+    /// ```
+    ///
     fn finish_u32(&self) -> u32 {
         self.hash
     }
@@ -68,6 +80,12 @@ impl Hasher for X33aU32 {
     fn finish(&self) -> u64 {
         self.hash as u64
     }
+    ///
+    /// Writes byte slice to hash.
+    ///
+    /// Does hash * 33 + byte but is implemented as hash << 5 (*32) + hash + byte as this is faster
+    /// on most processors vs normal multiplication.
+    ///
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u32);

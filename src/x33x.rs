@@ -31,6 +31,31 @@ use std::hash::Hasher;
 ///
 /// Implements 64 bit version of one of the "improved" hash functions post by Daniel J. Bernstein.
 ///
+/// # Examples
+///
+/// ```rust
+/// use std::hash::Hasher;
+/// use djb_hash::x33x::*;
+/// let input = "Ez";
+/// let mut hasher = X33x::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5861786u64);
+/// ```
+///
+/// Another example:
+///
+/// ```rust
+/// # use std::hash::Hasher;
+/// # use djb_hash::x33x::*;
+/// let input = "FY";
+/// let mut hasher = X33x::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5861914u64);
+/// ```
+///
+/// These examples show how the hashes don't collide the same as the x33a function would have
+/// given the same values.
+///
 pub struct X33x {
     hash: u64,
 }
@@ -61,6 +86,12 @@ impl Hasher for X33x {
     fn finish(&self) -> u64 {
         self.hash
     }
+    ///
+    /// Writes byte slice to hash.
+    ///
+    /// Does (hash * 33) XOR byte but is implemented as (hash << 5 (times 32) + hash) XOR byte as
+    /// this is faster on most processors vs normal multiplication.
+    ///
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash = (self.hash << 5).wrapping_add(self.hash) ^ *byte as u64;

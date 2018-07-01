@@ -29,6 +29,26 @@
 use std::hash::Hasher;
 use super::HasherU32;
 
+///
+/// Implements 32 bit version of one of the original hash functions post by Daniel J. Bernstein but
+/// with final OR to set the high bit.
+///
+/// PHP uses a zero hash value to signal an empty hash that will need to be calculated. To insure no
+/// actual hash ends up being zero a final step of binary OR is used to always set the high bit.
+///
+/// # Examples
+///
+/// ```rust
+/// use std::hash::Hasher;
+/// use djb_hash::HasherU32;
+/// use djb_hash::x33a_u32_php::*;
+/// let input = "Ez";
+/// let mut hasher = X33aU32Php::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 2153345956u64);
+/// assert_eq!(hasher.finish_u32(), 2153345956u32);
+/// ```
+///
 pub struct X33aU32Php {
     hash: u32,
 }
@@ -57,7 +77,7 @@ impl X33aU32Php {
 
 impl HasherU32 for X33aU32Php {
     fn finish_u32(&self) -> u32 {
-        self.hash
+        self.hash | 0x80000000u32
     }
 }
 
@@ -65,6 +85,12 @@ impl Hasher for X33aU32Php {
     fn finish(&self) -> u64 {
         (self.hash | 0x80000000u32) as u64
     }
+    ///
+    /// Writes byte slice to hash.
+    ///
+    /// Does hash * 33 + byte but is implemented as hash << 5 (*32) + hash + byte as this is faster
+    /// on most processors vs normal multiplication.
+    ///
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes {
             self.hash = (self.hash << 5).wrapping_add(self.hash).wrapping_add(*byte as u32);
@@ -82,6 +108,7 @@ mod tests {
         let input = [69, 122];
         sut.write(&input);
         assert_eq!(sut.finish(), 2153345956u64);
+        assert_eq!(sut.finish_u32(), 2153345956u32);
         let mut sut = X33aU32Php::new();
         let input = [70, 89];
         sut.write(&input);
