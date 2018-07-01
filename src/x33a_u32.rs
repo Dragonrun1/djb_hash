@@ -32,6 +32,52 @@ use super::HasherU32;
 ///
 /// Implements 32 bit version of one of the original hash functions post by Daniel J. Bernstein.
 ///
+/// # Examples
+///
+/// ```rust
+/// use std::hash::Hasher;
+/// use djb_hash::HasherU32;
+/// use djb_hash::x33a_u32::*;
+/// let input = "Ez";
+/// let mut hasher = X33aU32::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5862308u64);
+/// assert_eq!(hasher.finish_u32(), 5862308u32);
+/// ```
+/// Another example:
+///
+/// ```rust
+/// # use std::hash::Hasher;
+/// # use djb_hash::HasherU32;
+/// # use djb_hash::x33a_u32::*;
+/// let input = "FY";
+/// let mut hasher = X33aU32::new();
+/// hasher.write(&input.as_bytes());
+/// assert_eq!(hasher.finish(), 5862308u64);
+/// ```
+///
+/// These two examples show one of the known issues with this hash function:
+/// hash collision. Both strings hash to the same value. If it was being used in
+/// a public face HashMap it would open a possible DoS attack vector. Java, JS,
+/// Python and PHP have all experience these types of attacks when using this or
+/// other similar hash functions.
+///
+/// Adding prefixes and/or suffixes will change the hash but not the collision.
+/// An example:
+///
+/// ```rust
+/// # use std::hash::Hasher;
+/// # use djb_hash::x33a_u32::*;
+/// let input1 = "abcEzpie";
+/// let input2 = "abcFYpie";
+/// let mut hasher1 = X33aU32::new();
+/// let mut hasher2 = X33aU32::new();
+/// hasher1.write(&input1.as_bytes());
+/// hasher2.write(&input2.as_bytes());
+/// assert_eq!(hasher1.finish(), 1686394568u64);
+/// assert_eq!(hasher1.finish(), hasher2.finish());
+/// ```
+///
 pub struct X33aU32 {
     hash: u32,
 }
@@ -52,6 +98,45 @@ impl X33aU32 {
     /// multiplication stage for long values and tend to because static for very
     /// short values. Primes between 16 to 32 bits for 64 bit hashes seem to
     /// work best in most cases and between 16 to 24 bits for 32 bit hashes.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::hash::Hasher;
+    /// use djb_hash::HasherU32;
+    /// use djb_hash::x33a_u32::*;
+    /// let input = "Ez";
+    /// let mut hasher = X33aU32::new_with_salt(5381);
+    /// hasher.write(&input.as_bytes());
+    /// assert_eq!(hasher.finish(), 5862308u64);
+    /// assert_eq!(hasher.finish_u32(), 5862308u32);
+    /// ```
+    ///
+    /// Another example:
+    ///
+    /// ```rust
+    /// # use std::hash::Hasher;
+    /// # use djb_hash::HasherU32;
+    /// # use djb_hash::x33a_u32::*;
+    /// let input = "FY";
+    /// let mut hasher = X33aU32::new_with_salt(5387);
+    /// hasher.write(&input.as_bytes());
+    /// assert_eq!(hasher.finish(), 5868842u64);
+    /// ```
+    ///
+    /// These examples show how the hashes change with different salts but in
+    /// the next example you can see the same strings, "Ez" and "FY", will still
+    /// collide.
+    ///
+    /// ```rust
+    /// # use std::hash::Hasher;
+    /// # use djb_hash::HasherU32;
+    /// # use djb_hash::x33a_u32::*;
+    /// let input = "Ez";
+    /// let mut hasher = X33aU32::new_with_salt(5387);
+    /// hasher.write(&input.as_bytes());
+    /// assert_eq!(hasher.finish(), 5868842u64);
+    /// ```
     ///
     pub fn new_with_salt(s: u32) -> Self {
         X33aU32 { hash: s }
@@ -107,5 +192,9 @@ mod tests {
         let input = [70, 89];
         sut.write(&input);
         assert_eq!(sut.finish(), 5862308u64);
+        let input = "abcEzpie";
+        let mut sut = X33aU32::new_with_salt(5381);
+        sut.write(&input.as_bytes());
+        assert_eq!(sut.finish(), 1686394568u64);
     }
 }
