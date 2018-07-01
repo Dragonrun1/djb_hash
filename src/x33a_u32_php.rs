@@ -113,5 +113,9 @@ mod tests {
         let input = [70, 89];
         sut.write(&input);
         assert_eq!(sut.finish(), 2153345956u64);
+        let mut sut = X33aU32Php::new_with_salt(5381);
+        let input = [70, 89];
+        sut.write(&input);
+        assert_eq!(sut.finish(), 2153345956u64);
     }
 }

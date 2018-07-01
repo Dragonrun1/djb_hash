@@ -130,7 +130,7 @@ mod tests {
         assert_eq!(sut.finish(), 5861786u64);
         assert_eq!(sut.finish_u32(), 5861786u32);
         let input = "FY";
-        let mut sut = X33xU32::new();
+        let mut sut = X33xU32::new_with_salt(5381);
         sut.write(&input.as_bytes());
         assert_eq!(sut.finish(), 5861914u64);
     }
