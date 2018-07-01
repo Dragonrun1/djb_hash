@@ -122,6 +122,7 @@ impl X33aU32 {
     /// let mut hasher = X33aU32::new_with_salt(5387);
     /// hasher.write(&input.as_bytes());
     /// assert_eq!(hasher.finish(), 5868842u64);
+    /// assert_eq!(hasher.finish_u32(), 5868842u32);
     /// ```
     ///
     /// These examples show how the hashes change with different salts but in
@@ -196,5 +197,6 @@ mod tests {
         let mut sut = X33aU32::new_with_salt(5381);
         sut.write(&input.as_bytes());
         assert_eq!(sut.finish(), 1686394568u64);
+        assert_eq!(sut.finish_u32(), 1686394568u32);
     }
 }
