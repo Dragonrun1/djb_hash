@@ -10,7 +10,7 @@ readme = "README.md"
 repository = "https://github.com/Dragonrun1/djb_hash"
 
 [badges]
-travis-ci = { repository = "Dragonrun1/djb_hash", branch = "master" }
+travis-ci = { repository = "Dragonrun1/djb_hash" }
 codecov = { repository = "Dragonrun1/djb_hash", branch = "master", service = "github" }
 coveralls = { repository = "Dragonrun1/djb_hash", branch = "master", service = "github" }
 
