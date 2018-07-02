@@ -4,8 +4,14 @@ version = "0.1.0"
 authors = ["Michael Cummings <mgcummings@yahoo.com>"]
 description = "Rust library of commonly used Daniel J. Bernstein style hash functions."
 homepage = "https://github.com/Dragonrun1/djb_hash"
-keywords = ["DJB", "hash", "PHP", "x33a", "x33x"]
-license="BSD-3-Clause"
+keywords = ["DJB", "hash", "PHP", "x33a", "x33x", "Daniel", "Bernstein"]
+license = "BSD-3-Clause"
 readme = "README.md"
 repository = "https://github.com/Dragonrun1/djb_hash"
+
+[badges]
+travis-ci = { repository = "Dragonrun1/djb_hash", branch = "master" }
+codecov = { repository = "Dragonrun1/djb_hash", branch = "master", service = "github" }
+coveralls = { repository = "Dragonrun1/djb_hash", branch = "master", service = "github" }
+
 [dependencies]
